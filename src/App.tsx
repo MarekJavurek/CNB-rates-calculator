@@ -1,35 +1,80 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useCnbRates } from './query-hooks';
+import { AppWrapper } from './App.styled';
+import { CircularProgress, Alert, Typography, Box } from '@mui/material';
+import { env } from './env';
 
-function App() {
-  const [count, setCount] = useState(0)
+export const App: React.FC = () => {
+	const { data, isLoading, error } = useCnbRates();
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+	if (isLoading) {
+		return (
+			<AppWrapper>
+				<Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+					<CircularProgress />
+				</Box>
+			</AppWrapper>
+		);
+	}
 
-export default App
+	if (error) {
+		return (
+			<AppWrapper>
+				<Alert severity="error">Chyba při načítání kurzů: {error.message}</Alert>
+			</AppWrapper>
+		);
+	}
+
+	if (!data) {
+		return null;
+	}
+
+	return (
+		<AppWrapper>
+			{env.FE_CNB_API_URL}
+			<Typography variant="h4" component="h1" gutterBottom>
+				CNB Rates Calculator
+			</Typography>
+
+			<Typography variant="subtitle1" gutterBottom>
+				{data.date} #{data.serialNumber}
+			</Typography>
+
+			<Box component="table" sx={{ borderCollapse: 'collapse', width: '100%', mt: 2 }}>
+				<thead>
+					<tr>
+						<th style={{ textAlign: 'left', padding: '8px', borderBottom: '2px solid #ddd' }}>
+							Country
+						</th>
+						<th style={{ textAlign: 'left', padding: '8px', borderBottom: '2px solid #ddd' }}>
+							Currency
+						</th>
+						<th style={{ textAlign: 'right', padding: '8px', borderBottom: '2px solid #ddd' }}>
+							Amount
+						</th>
+						<th style={{ textAlign: 'left', padding: '8px', borderBottom: '2px solid #ddd' }}>
+							Code
+						</th>
+						<th style={{ textAlign: 'right', padding: '8px', borderBottom: '2px solid #ddd' }}>
+							Rate
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					{data.rates.map((rate) => (
+						<tr key={rate.code}>
+							<td style={{ padding: '8px', borderBottom: '1px solid #eee' }}>{rate.country}</td>
+							<td style={{ padding: '8px', borderBottom: '1px solid #eee' }}>{rate.currency}</td>
+							<td style={{ padding: '8px', borderBottom: '1px solid #eee', textAlign: 'right' }}>
+								{rate.amount}
+							</td>
+							<td style={{ padding: '8px', borderBottom: '1px solid #eee' }}>{rate.code}</td>
+							<td style={{ padding: '8px', borderBottom: '1px solid #eee', textAlign: 'right' }}>
+								{rate.normalizedRate}
+							</td>
+						</tr>
+					))}
+				</tbody>
+			</Box>
+		</AppWrapper>
+	);
+};
