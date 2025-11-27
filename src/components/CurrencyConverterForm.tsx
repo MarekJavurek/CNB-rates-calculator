@@ -1,8 +1,10 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { TextField, Skeleton } from '@mui/material';
+import { Skeleton } from '@mui/material';
 import type { CnbRate } from '../types/cnb';
+import type { CurrencyOption } from '../types/currency';
 import { formatNumberCZ } from '../utils/format.helpers';
+import { useCurrencyConverterForm } from './useCurrencyConverterForm';
 import {
 	FormPaper,
 	FormBox,
@@ -14,7 +16,7 @@ import {
 
 type CurrencyConverterFormData = {
 	amount: string;
-	selectedCurrency: { country: string; code: string } | null;
+	selectedCurrency: CurrencyOption | null;
 };
 
 type CurrencyConverterFormProps = {
@@ -26,19 +28,14 @@ export const CurrencyConverterForm: React.FC<CurrencyConverterFormProps> = ({
 	currencies,
 	isLoading = false,
 }) => {
-	const currencyOptions = useMemo(
-		() =>
-			currencies.map((currency) => ({
-				country: currency.country,
-				code: currency.code,
-			})),
-		[currencies]
-	);
-
-	const defaultCurrency = useMemo(
-		() => currencyOptions.find((c) => c.code === 'USD') || null,
-		[currencyOptions]
-	);
+	const {
+		currencyOptions,
+		defaultCurrency,
+		getOptionLabel,
+		isOptionEqualToValue,
+		filterCurrencyOptions,
+		renderInput,
+	} = useCurrencyConverterForm(currencies);
 
 	const { control, watch } = useForm<CurrencyConverterFormData>({
 		defaultValues: {
@@ -53,6 +50,30 @@ export const CurrencyConverterForm: React.FC<CurrencyConverterFormProps> = ({
 
 	const amount = watch('amount');
 	const selectedCurrency = watch('selectedCurrency');
+
+	const renderCurrencyAutocomplete = useCallback(
+		({
+			field: { onChange, value },
+		}: {
+			field: {
+				onChange: (value: CurrencyOption | null) => void;
+				value: CurrencyOption | null;
+			};
+		}) => (
+			<CurrencyAutocomplete
+				options={currencyOptions}
+				getOptionLabel={getOptionLabel}
+				value={value}
+				onChange={(_event: React.SyntheticEvent, newValue: CurrencyOption | null) =>
+					onChange(newValue)
+				}
+				renderInput={renderInput}
+				isOptionEqualToValue={isOptionEqualToValue}
+				filterOptions={filterCurrencyOptions}
+			/>
+		),
+		[currencyOptions, getOptionLabel, renderInput, isOptionEqualToValue, filterCurrencyOptions]
+	);
 
 	const convertedAmount = useMemo(() => {
 		if (!amount || !selectedCurrency) return null;
@@ -95,22 +116,7 @@ export const CurrencyConverterForm: React.FC<CurrencyConverterFormProps> = ({
 					)}
 				/>
 				<TextLabel>CZK TO</TextLabel>
-				<Controller
-					name="selectedCurrency"
-					control={control}
-					render={({ field: { onChange, value } }) => (
-						<CurrencyAutocomplete
-							options={currencyOptions}
-							getOptionLabel={(option) => `${option.country} (${option.code})`}
-							value={value}
-							onChange={(_, newValue) => onChange(newValue)}
-							renderInput={(params) => (
-								<TextField {...params} label="Currency or Country" variant="outlined" />
-							)}
-							isOptionEqualToValue={(option, value) => option.code === value.code}
-						/>
-					)}
-				/>
+				<Controller name="selectedCurrency" control={control} render={renderCurrencyAutocomplete} />
 				<TextLabel>
 					={' '}
 					{convertedAmount !== null
