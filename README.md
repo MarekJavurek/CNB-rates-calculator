@@ -3,6 +3,11 @@
 - project is using corepack
 - for more, see commands in package.json
 
+# ENV vars
+
+- api/cnb-rates.ts needs ENV variable CNB_API_URL (CNB server)
+- react app needs ENV variable FE_CNB_API_URL (API proxy URL)
+
 # Nice to have (TODOs)
 
 - new CNB data arrives at 2.30 p.m., we can calculate staleTime.
