@@ -70,6 +70,7 @@ export const CurrencyConverterForm: React.FC<CurrencyConverterFormProps> = ({
 				renderInput={renderInput}
 				isOptionEqualToValue={isOptionEqualToValue}
 				filterOptions={filterCurrencyOptions}
+				autoHighlight
 			/>
 		),
 		[currencyOptions, getOptionLabel, renderInput, isOptionEqualToValue, filterCurrencyOptions]
