@@ -1,9 +1,9 @@
-import type { CnbRatesResponse } from "./useCnbRates";
+import type { CnbRatesResponse } from "../types/cnb";
 
 export function parseCnbResponse(text: string): CnbRatesResponse {
   const lines = text.trim().split("\n");
 
-  // První řádek obsahuje datum a sériové číslo, např: "25 Nov 2025 #228"
+  // First line contains date and serial number, e.g.: "25 Nov 2025 #228"
   const headerLine = lines[0];
   const headerMatch = headerLine.match(/^(.+?)\s+#(\d+)$/);
 
@@ -15,8 +15,8 @@ export function parseCnbResponse(text: string): CnbRatesResponse {
   const date = dateStr.trim();
   const serialNumber = Number.parseInt(serialNumberStr, 10);
 
-  // Druhý řádek obsahuje názvy sloupců (přeskočíme)
-  // Od třetího řádku jsou data
+  // Second line contains column names (we skip it)
+  // Data starts from the third line
   const rates: CnbRatesResponse["rates"] = [];
 
   for (let i = 2; i < lines.length; i++) {
