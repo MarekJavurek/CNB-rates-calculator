@@ -14,7 +14,8 @@
 - YUP/ZOD form validations
 - we have no tests for proxy API (serverless function)
 - some more fancy table
-- focus more on mobile UX
+- focus more on UX (for example: table row click, set target currency)
+- focus on mobile
 
 # Task Assignment
 
